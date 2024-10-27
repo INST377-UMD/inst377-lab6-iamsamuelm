@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+    <title>Map of the US</title>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""></script> 
+    <style type="text/css">
+        #map { height: 500px; }
+        #ul {padding: 30px;}
+    </style>
+</head>
+<body>
+    <h1>Map of the US</h1>
+    <div id="map"></div>
+    <ul id="markers"></ul>
+    <script>
+        var map = L.map('map').setView([39.50, -98.35], 4);
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        function getRandomInRange(from, to, fixed) {
+            return (Math.random() * (to - from) + from).toFixed(fixed) * 1;
+        }
+
+        // Generate random coordinates
+        var latitudes = [
+            getRandomInRange(30, 35, 3),
+            getRandomInRange(30, 35, 3),
+            getRandomInRange(30, 35, 3)
+        ];
+
+        var longitudes = [
+            getRandomInRange(-90, -100, 3),
+            getRandomInRange(-90, -100, 3),
+            getRandomInRange(-90, -100, 3)
+        ];
+
+        // Create markers for each coordinate
+        var markers = [];
+
+        for (var i = 0; i < 3; i++) {
+            var marker = L.marker([latitudes[i], longitudes[i]]).addTo(map);
+            markers.push(marker);
+        }
+
+        // Get locality for each marker
+        markers.forEach(function (marker, index) {
+            var latitude = latitudes[index];
+            var longitude = longitudes[index];
+            var url = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    var locality = data.locality;
+                    var text = `Marker ${index + 1}: Latitude: ${latitude}, Longitude: ${longitude}, \nDistrict: ${locality}`;
+                    var node = document.createElement("LI");
+                    var textnode = document.createTextNode(text);
+                    node.appendChild(textnode);
+                    node.style.whiteSpace = "pre-line";
+                    document.getElementById("markers").appendChild(node);
+                })
+                .catch(error => console.error(error));
+        });
+    </script>
+</body>
+</html>
